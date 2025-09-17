@@ -1,0 +1,237 @@
+basePath: /
+definitions:
+  main.BlockAccount:
+    description: Block account information with interest calculations
+    properties:
+      created_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        example: 1
+        type: integer
+      interest_rate:
+        example: 0.05
+        type: number
+      principal:
+        example: 1000
+        type: number
+      start_date:
+        type: string
+      status:
+        example: active
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        example: 123
+        type: integer
+    type: object
+  main.CreateAccountRequest:
+    description: Request payload for creating a new block account
+    properties:
+      period:
+        description: '"3m", "6m", "1y", "3y"'
+        example: 1y
+        type: string
+      principal:
+        example: 1000
+        type: number
+      user_id:
+        example: 123
+        type: integer
+    required:
+    - period
+    - principal
+    - user_id
+    type: object
+  main.ErrorResponse:
+    description: Standard error response format
+    properties:
+      code:
+        example: 400
+        type: integer
+      error:
+        example: Bad Request
+        type: string
+      message:
+        example: Invalid request body
+        type: string
+    type: object
+  main.SuccessResponse:
+    description: Standard success response format
+    properties:
+      data: {}
+      message:
+        example: Operation completed successfully
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: http://www.example.com/support
+  description: API for managing block accounts with interest calculations
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Block Account API
+  version: "1.0"
+paths:
+  /block-account:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new block account with specified user ID, principal,
+        and period
+      parameters:
+      - description: Create account request
+        in: body
+        name: account
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Create a new block account
+      tags:
+      - block-account
+  /block-account/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a block account by its ID
+      parameters:
+      - description: Account ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+          schema:
+            type: string
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Delete block account by ID
+      tags:
+      - block-account
+    get:
+      consumes:
+      - application/json
+      description: Retrieve a block account by its ID
+      parameters:
+      - description: Account ID
+        format: int64
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/main.BlockAccount'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get block account by ID
+      tags:
+      - block-account
+  /health:
+    get:
+      description: Check if the service is healthy and database is reachable
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Health check endpoint
+      tags:
+      - health
+  /user/{userID}/block-accounts:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all block accounts for a specific user
+      parameters:
+      - description: User ID
+        format: int64
+        in: path
+        name: userID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/main.BlockAccount'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/main.ErrorResponse'
+      summary: Get all block accounts for a user
+      tags:
+      - block-account
+schemes:
+- http
+swagger: "2.0"

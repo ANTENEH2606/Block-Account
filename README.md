@@ -1,211 +1,179 @@
-# Block Account Service
-    A RESTful API service for managing fixed-term investment accounts with automated interest calculation and maturity tracking.
+# Block Account API
 
-# Overview
-   This service provides a Go-based backend for creating and managing "block accounts" - fixed-term investment accounts where funds are locked for a specific period with predetermined interest rates. The system supports different investment periods (3 months, 6 months, 1 year, 3 years) with varying interest rates.
+    A RESTful API for managing block accounts with interest calculations, built with Go, PostgreSQL, and Chi router. This API allows users to create, retrieve, and delete block accounts with automated interest calculations based on different time periods.
 
-# Project Structure
-    text
-    .
-    ├── main.go                 # Main application entry point
-    ├── go.mod                 # Go module dependencies
-    ├── go.sum                 # Dependency checksums
-    ├── .env                   # Environment variables (create this)
-    └── README.md             # This file
+# Features
 
-# Key Components
+    Account Management: Create, retrieve, and delete block accounts
 
-    ## Data Models
+    Interest Calculations: Automatic interest rate calculation based on period (3m, 6m, 1y, 3y)
 
-        BlockAccount
-        Represents a fixed-term investment account with:
+    Swagger Documentation: Comprehensive API documentation with Swagger UI
 
-        ID: Unique identifier
+    Database Integration: PostgreSQL backend with connection pooling
 
-        UserID: Owner of the account
+    Structured Logging: Production-ready logging with Zap
 
-        Principal: Initial investment amount
+    Health Checks: Endpoint for service health monitoring
 
-        StartDate: When the investment begins
+    Input Validation: Comprehensive request validation
 
-        EndDate: When the investment matures
+    Error Handling: Standardized error responses
 
-        InterestRate: Annual interest rate for the period
+# API Endpoints
 
-        Status: Account status (active/matured)
+    Method	Endpoint	                    Description
 
-        CreateAccountRequest
-        Request payload for creating new accounts:
+    POST	/block-account	                Create a new block account
+    GET	    /block-account/{id}	            Get a block account by ID
+    GET	    /user/{userID}/block-accounts	Get all block accounts for a user
+    DELETE	/block-account/{id}	            Delete a block account by ID
+    GET	    /health	                        Health check endpoint
+    GET	    /swagger/*	                    Swagger UI documentation
 
-        UserID: Account owner identifier
+# Interest Rates
 
-        Principal: Investment amount
+    Period	Duration	Interest Rate
 
-        Period: Investment duration ("3m", "6m", "1y", "3y")
+    3m	    3 months	2.0%
+    6m	    6 months	3.5%
+    1y	    1 year	    5.0%
+    3y	    3 years	    10.0%
 
-    ## Service Layer
+# Prerequisites
 
-        BlockAccountService Interface
-        Defines the core business operations:
+Before running this application, ensure you have the following installed:
 
-            CreateBlockAccount(): Creates new investment accounts
+    Go (version 1.21 or higher)
 
-            GetBlockAccount(): Retrieves account details
+    PostgreSQL (version 12 or higher)
 
-            DeleteBlockAccount(): Removes accounts
+    Swag (for generating documentation)
 
 
-    ## HTTP Handlers
+# Initialize Go module
+    go mod init block-account-api
 
-        createBlockAccountHandler: POST endpoint for account creation
+# Install required packages
 
-        getBlockAccountHandler: GET endpoint for account retrieval
+    go get github.com/go-chi/chi/v5
+    go get github.com/joho/godotenv
+    go get github.com/lib/pq
+    go get github.com/swaggo/http-swagger
+    go get go.uber.org/zap
 
-        deleteBlockAccountHandler: DELETE endpoint for account removal
+# Install Swag CLI for documentation generation
 
-    ## Middleware
-
-        ServiceMiddleware: Injects the service instance into request context
-
-        Chi router middleware for logging and recovery
-
-    
-# Clone and Initialize
-    bash
-
-    git clone <repository-url>
-    cd <project-directory>
-    go mod download
+    go install github.com/swaggo/swag/cmd/swag@latest
 
 # Database Setup
 
-    Create a PostgreSQL database and run the following schema:
+    Create a PostgreSQL database for the application:
 
     sql
-        CREATE TABLE block_accounts (
-            id SERIAL PRIMARY KEY,
-            user_id INTEGER NOT NULL,
-            principal DECIMAL(15,2) NOT NULL,
-            start_date TIMESTAMP NOT NULL,
-            end_date TIMESTAMP NOT NULL,
-            interest_rate DECIMAL(5,4) NOT NULL,
-            status VARCHAR(20) DEFAULT 'active'
-        );
+    CREATE DATABASE block_account_db;
 
 # Environment Configuration
 
-    Create a .env file in the project root:
+    Create a .env file in the root directory:
 
-        DB_HOST=localhost
-        DB_PORT=5432
-        DB_USER=your_db_user
-        DB_PASSWORD=your_db_password
-        DB_NAME=your_db_name
-        DB_SSLMODE=disable
-        PORT=8080
+    env
+    DB_HOST=localhost
+    DB_PORT=5432
+    DB_USER=your_username
+    DB_PASSWORD=password
+    DB_NAME=block_account_db
+    DB_SSLMODE=disable
+    PORT=8080
+
+# Generate Swagger Documentation
+
+    bash
+
+    swag init
+
+    This will create a docs folder with the API documentation.
 
 # Running the Application
-bash
+   1. Start the Server
 
-    # Start the server
+        bash
+
         go run main.go
 
-        The server will start on the specified port (default: 8080).
+        The server will start on port 8080 
 
-    # API Endpoints
+    2. Access the API
 
-    1. Create Block Account
+        API Base URL: http://localhost:8080
 
-        POST /block-account
+        Swagger UI: http://localhost:8080/swagger/index.html
 
-        Request body:
+        Health Check: http://localhost:8080/health
 
-        json
-            {
+    API Usage Examples:-
+
+    Create a Block Account
+
+        bash
+            curl -X POST "http://localhost:8080/block-account" \
+            -H "Content-Type: application/json" \
+            -d '{
                 "user_id": 123,
                 "principal": 1000.00,
                 "period": "1y"
-            }
-        Response:
-
-        json
-            {
-                "message": "Block account created successfully",
-                "account": {
-                    "id": 1,
-                    "user_id": 123,
-                    "principal": 1000.00,
-                    "start_date": "2023-10-01T10:00:00Z",
-                    "end_date": "2024-10-01T10:00:00Z",
-                    "interest_rate": 0.05,
-                    "status": "active"
-            }
-        }
-
-    2. Get Block Account
-
-        GET /block-account/{id}
+            }'
 
         Response:
 
             json
             {
+            "success": true,
+            "data": {
                 "id": 1,
                 "user_id": 123,
-                "principal": 1000.00,
+                "principal": 1000,
                 "start_date": "2023-10-01T10:00:00Z",
                 "end_date": "2024-10-01T10:00:00Z",
                 "interest_rate": 0.05,
-                "status": "active"
+                "status": "active",
+                "created_at": "2023-10-01T10:00:00Z",
+                "updated_at": "2023-10-01T10:00:00Z"
+            },
+            "message": "Block account created successfully"
             }
+    Get a Block Account
 
-    3. Delete Block Account
+        bash
 
-        DELETE /block-account/{id}
+                curl -X GET "http://localhost:8080/block-account/1"
 
-        Response: 204 No Content
+    Get User's Block Accounts
 
-# Interest Rate Schedule
-    Period	Duration	Interest Rate
-    3m	3 months	2.0%
-    6m	6 months	3.5%
-    1y	1 year	5.0%
-    3y	3 years	10.0%
+        bash
 
-# Error Handling
-    The API returns appropriate HTTP status codes:
+            curl -X GET "http://localhost:8080/user/123/block-accounts"
 
-    200: Success
+    Delete a Block Account
 
-    400: Bad request (invalid input)
+        bash
 
-    404: Resource not found
+            curl -X DELETE "http://localhost:8080/block-account/1"
 
-    500: Internal server error
+Database Schema
 
-# Testing bash
+    The application automatically creates the following table structure:
 
-    # Create the account
+    block_accounts Table
 
-    curl -X POST -H "Content-Type: application/json" -d '{
-    "user_id": 1,
-    "principal": 5000.00,
-    "period": "1y"
-    }' http://localhost:8080/block-account
+    Column	             Type	                               Description
 
-    # GET the account
-
-    curl http://localhost:8080/block-account/1
-
-    # Delete the account
-
-    curl -X DELETE http://localhost:8080/block-account/1
-
-
-# Dependencies
-
-    Chi: Lightweight HTTP router
-
-    lib/pq: PostgreSQL driver
-
-    godotenv: Environment variable management
+    id	            SERIAL PRIMARY KEY	                    Unique identifier
+    user_id	        INTEGER NOT NULL	                    User identifier
+    principal	    DECIMAL(15,2) NOT NULL	                Initial investment amount
+    start_date	    TIMESTAMP NOT NULL	                    Account  start date
+    end_date	    TIMESTAMP NOT NULL	                    Account maturity date
+    interest_rate	DECIMAL(5,4) NOT NULL	                Annual interest rate
+    status	        VARCHAR(20) DEFAULT 'active'	        Account status
+    created_at	    TIMESTAMP DEFAULT CURRENT_TIMESTAMP	    Creation timestamp
+    updated_at	    TIMESTAMP DEFAULT CURRENT_TIMESTAMP	    Last update timestamp
